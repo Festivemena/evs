@@ -1,71 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import io from 'socket.io-client';
 
-const categories = [
-  {
-    id: 1,
-    name: 'Business Venture of the Year',
-    candidates: [
-      { id: 1, name: 'Candidate A', image: '/DP-01.png' },
-      { id: 2, name: 'Candidate B', image: '/DP-02.png' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Student of the Year',
-    candidates: [
-      { id: 3, name: 'Candidate C', image: '/DP-03.png' },
-      { id: 4, name: 'Candidate D', image: '/DP-01.png' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Scholar of the Year',
-    candidates: [
-      { id: 5, name: 'Candidate E', image: '/DP-02.png' },
-      { id: 6, name: 'Candidate F', image: '/DP-03.png' },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Sportsman of the Year',
-    candidates: [
-      { id: 7, name: 'Candidate G', image: '/DP-01.png' },
-      { id: 8, name: 'Candidate H', image: '/DP-02.png' },
-    ],
-  },
-  {
-    id: 5,
-    name: 'Best Dressed Male',
-    candidates: [
-      { id: 9, name: 'Candidate I', image: '/DP-03.png' },
-      { id: 10, name: 'Candidate J', image: '/DP-01.png' },
-    ],
-  },
-  {
-    id: 6,
-    name: 'Best Dressed Female',
-    candidates: [
-      { id: 11, name: 'Candidate K', image: '/DP-02.png' },
-      { id: 12, name: 'Candidate L', image: '/DP-03.png' },
-    ],
-  },
-];
+const socket = io('https://bevs.onrender.com'); // Adjust based on your backend URL
 
 export default function VotingSystem() {
   const router = useRouter();
+  const [categories, setCategories] = useState([]);
+  const [candidates, setCandidates] = useState([]);
   const [votes, setVotes] = useState({});
-  const totalVotes = Object.values(votes).reduce((acc, curr) => acc + curr, 0);
 
-  const vote = (id) => {
-    setVotes((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch candidates
+        const candidatesRes = await fetch('https://bevs.onrender.com/candidates');
+        const candidatesData = await candidatesRes.json();
+
+        // Extract unique categories from candidates
+        const categorySet = new Set();
+        const updatedCandidates = candidatesData.map((candidate) => {
+          categorySet.add(candidate.category);
+          return {
+            ...candidate,
+            categoryName: candidate.category || 'Unknown',
+          };
+        });
+
+        setCandidates(updatedCandidates);
+        setCategories([...categorySet].map((name, index) => ({ _id: index.toString(), name })));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+
+    // Listen for real-time vote updates
+    socket.on('voteUpdate', (updatedVotes) => {
+      setVotes(updatedVotes);
+    });
+  }, []);
 
   const handleCategorySelect = (categoryId) => {
     router.push(`/vote/${categoryId}`);
@@ -74,11 +53,11 @@ export default function VotingSystem() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-6">
       <div className="w-full max-w-md p-6 bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl">
-        <h2 className="text-xl font-semibold text-white text-center mb-4">Vote for Your Favorite FYB Personality</h2>
+        <h2 className="text-xl font-semibold text-white text-center mb-4">Vote for Your Favorite Candidate</h2>
         <div className="space-y-4">
           {categories.map((category) => (
             <motion.div
-              key={category.id}
+              key={category._id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -88,7 +67,11 @@ export default function VotingSystem() {
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
                     <span className="text-white text-lg">{category.name}</span>
-                    <Button onClick={() => handleCategorySelect(category.id)} variant="outline" className="border-white/50 text-white hover:bg-white/20">
+                    <Button
+                      onClick={() => handleCategorySelect(category._id)}
+                      variant="outline"
+                      className="border-white/50 text-white hover:bg-white/20"
+                    >
                       Select
                     </Button>
                   </div>
