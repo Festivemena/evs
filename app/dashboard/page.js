@@ -9,12 +9,12 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const candidates = [
-  { id: 1, name: 'Vitalis', category: 'Tech', image: '/DP-01.png' },
-  { id: 2, name: 'Jahswill', category: 'Entertainment', image: '/DP-02.png' },
-  { id: 3, name: 'David', category: 'Leadership', image: '/DP-03.png' },
-  { id: 4, name: 'John', category: 'Tech', image: '/DP-01.png' },
-  { id: 5, name: 'Amaka', category: 'Entertainment', image: '/DP-02.png' },
-  { id: 6, name: 'Emeka', category: 'Leadership', image: '/DP-03.png' },
+  { id: 1, name: 'Vitalis', category: 'Popular Personality', image: '/DP-01.png' },
+  { id: 2, name: 'Jahswill', category: 'Entrepreneur (MALE)', image: '/DP-02.png' },
+  { id: 3, name: 'Matilda', category: 'Inflencer (FEMALE)', image: '/DP-03.png' },
+  { id: 4, name: 'Gomag', category: 'Influencer (MALE)', image: '/DP-01.png' },
+  { id: 5, name: 'Sele', category: 'Entertainer', image: '/DP-02.png' },
+  { id: 6, name: 'Nehita', category: 'Entrepreneur (FEMALE)', image: '/DP-03.png' },
 ];
 
 export default function VotingDashboard() {
