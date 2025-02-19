@@ -1,34 +1,54 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { create } from 'zustand';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import io from 'socket.io-client';
 
-const socket = io('https://bevs.onrender.com'); // Adjust based on backend URL
+const socket = io('https://bevs.onrender.com'); // Adjust as needed
+
+// Zustand store for global state management
+const useVotingStore = create((set) => ({
+  categories: [],
+  candidates: [],
+  votes: {},
+  voterId: '',
+  setCategories: (categories) => set({ categories }),
+  setCandidates: (candidates) => set({ candidates }),
+  setVotes: (votes) => set({ votes }),
+  setVoterId: (voterId) => set({ voterId }),
+}));
 
 export default function VotingSystem() {
-  const [categories, setCategories] = useState([]);
-  const [candidates, setCandidates] = useState([]);
-  const [votes, setVotes] = useState({});
+  const {
+    categories,
+    candidates,
+    votes,
+    voterId,
+    setCategories,
+    setCandidates,
+    setVotes,
+    setVoterId,
+  } = useVotingStore();
+
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [voterId, setVoterId] = useState('');
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-  // Fetch candidates data
+  // Fetch candidates and categories
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch('https://bevs.onrender.com/candidates');
         const data = await res.json();
-        
         if (!res.ok) throw new Error('Failed to fetch candidates');
 
-        // Process categories
+        // Extract unique categories
         const uniqueCategories = [...new Set(data.map((c) => c.category || 'Unknown'))];
         setCategories(uniqueCategories.map((name, index) => ({ _id: index.toString(), name })));
-        
-        setCandidates(data);
+
+        // Limit to 4 candidates only
+        setCandidates(data.slice(0, 4));
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -38,9 +58,9 @@ export default function VotingSystem() {
     socket.on('voteUpdate', (updatedVotes) => setVotes(updatedVotes));
 
     return () => socket.off('voteUpdate');
-  }, []);
+  }, [setCategories, setCandidates, setVotes]);
 
-  // Handle voting action
+  // Handle voting
   const handleVote = useCallback(async () => {
     if (!selectedCandidate || !voterId) return;
 
@@ -66,7 +86,7 @@ export default function VotingSystem() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#479d06] p-6">
       <div className="w-full max-w-md p-6 bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl">
         <h2 className="text-xl font-semibold text-white text-center mb-4">Vote for Your Favorite Candidate</h2>
-        
+
         <input
           type="text"
           placeholder="Enter Voter ID"
