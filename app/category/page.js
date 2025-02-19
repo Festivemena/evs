@@ -83,7 +83,7 @@ export default function VotingSystem() {
   }, [selectedCandidate, voterId]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#479d06] p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-6">
       <div className="w-full max-w-md p-6 bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl">
         <h2 className="text-xl font-semibold text-white text-center mb-4">Vote for Your Favorite Candidate</h2>
 
