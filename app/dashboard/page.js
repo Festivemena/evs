@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { create } from 'zustand';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -8,36 +9,36 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+// Zustand Store for Global Voting State
+const useVotingStore = create((set) => ({
+  votes: { 1: 10, 2: 15, 3: 5, 4: 20, 5: 8, 6: 12 },
+  incrementVote: (id) => set((state) => ({ votes: { ...state.votes, [id]: state.votes[id] + 1 } })),
+}));
+
 const candidates = [
   { id: 1, name: 'Vitalis', category: 'Popular Personality', image: '/DP-01.png' },
   { id: 2, name: 'Jahswill', category: 'Entrepreneur (MALE)', image: '/DP-02.png' },
-  { id: 3, name: 'Matilda', category: 'Inflencer (FEMALE)', image: '/DP-03.png' },
+  { id: 3, name: 'Matilda', category: 'Influencer (FEMALE)', image: '/DP-03.png' },
   { id: 4, name: 'Gomag', category: 'Influencer (MALE)', image: '/DP-01.png' },
   { id: 5, name: 'Sele', category: 'Entertainer', image: '/DP-02.png' },
   { id: 6, name: 'Nehita', category: 'Entrepreneur (FEMALE)', image: '/DP-03.png' },
 ];
 
 export default function VotingDashboard() {
-  const [votes, setVotes] = useState({ 1: 10, 2: 15, 3: 5, 4: 20, 5: 8, 6: 12 });
-
+  const { votes, incrementVote } = useVotingStore();
   const totalVotes = Object.values(votes).reduce((acc, val) => acc + val, 0);
-
   const categories = [...new Set(candidates.map((c) => c.category))];
-
-  const vote = (id) => {
-    setVotes((prev) => ({ ...prev, [id]: prev[id] + 1 }));
-  };
 
   const categoryVotes = categories.map((category) => ({
     category,
     votes: candidates
       .filter((c) => c.category === category)
-      .reduce((acc, c) => acc + votes[c.id], 0),
+      .reduce((acc, c) => acc + (votes[c.id] || 0), 0),
   }));
 
   const candidateVotes = candidates.map((c) => ({
     name: c.name,
-    votes: votes[c.id],
+    votes: votes[c.id] || 0,
   }));
 
   return (
@@ -102,7 +103,7 @@ export default function VotingDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Vote Action
+        {/* Vote Action */}
         <div className="mb-6">
           <h3 className="text-xl font-semibold mb-3">Cast Your Vote</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -125,7 +126,7 @@ export default function VotingDashboard() {
                   <div className="flex justify-between items-center">
                     <span className="text-white text-lg">{candidate.name}</span>
                     <Button
-                      onClick={() => vote(candidate.id)}
+                      onClick={() => incrementVote(candidate.id)}
                       variant="outline"
                       className="border-white/50 text-white hover:bg-white/20"
                     >
@@ -141,7 +142,7 @@ export default function VotingDashboard() {
               </motion.div>
             ))}
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );
